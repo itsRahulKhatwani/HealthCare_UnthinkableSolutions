@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { generatePreVisitSummary } from "@/lib/gemini";
 import { logger } from "@/lib/logger";
-import { NotificationType, NotificationChannel } from "@prisma/client";
+import { NotificationType, NotificationChannel } from "@/generated/prisma/client";
 
 export async function POST(
   req: Request,
