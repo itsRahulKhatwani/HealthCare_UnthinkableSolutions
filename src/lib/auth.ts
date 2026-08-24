@@ -57,7 +57,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
+        token.role = (user as unknown as { role: Role }).role;
       }
       if (account?.provider === "google") {
         token.accessToken = account.access_token;
@@ -69,8 +69,8 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as Role;
-        (session as any).accessToken = token.accessToken;
-        (session as any).refreshToken = token.refreshToken;
+        (session as unknown as { accessToken?: unknown }).accessToken = token.accessToken;
+        (session as unknown as { refreshToken?: unknown }).refreshToken = token.refreshToken;
       }
       return session;
     },

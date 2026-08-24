@@ -49,7 +49,7 @@ Patient symptoms:
         aiUrgency: ["LOW", "MEDIUM", "HIGH"].includes(parsed.urgency) ? parsed.urgency : "MEDIUM",
         aiStatus: "SUCCESS",
       };
-    } catch (_parseError) {
+    } catch {
       logger.error("Gemini JSON parse failed", { text: cleanText });
       return { aiSummary: null, aiUrgency: "MEDIUM", aiStatus: "FAILED" };
     }

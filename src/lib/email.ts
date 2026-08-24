@@ -28,8 +28,9 @@ export async function sendEmail({
       html,
     });
     return { success: true, data: info };
-  } catch (error: any) {
-    logger.error("Failed to send email via Nodemailer", { error: error.message, to, subject });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error("Failed to send email via Nodemailer", { error: errorMessage, to, subject });
     throw error;
   }
 }

@@ -43,8 +43,9 @@ export async function createCalendarEvent(
     });
 
     return { success: true, eventId: response.data.id };
-  } catch (error: any) {
-    logger.error("Failed to create Google Calendar event", { error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error("Failed to create Google Calendar event", { error: errorMessage });
     throw error;
   }
 }
