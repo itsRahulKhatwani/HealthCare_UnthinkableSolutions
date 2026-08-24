@@ -1,7 +1,7 @@
 type LogLevel = "info" | "warn" | "error";
 
 export const logger = {
-  log: (level: LogLevel, event: string, payload?: Record<string, any>) => {
+  log: (level: LogLevel, event: string, payload?: Record<string, unknown>) => {
     const logEntry = {
       timestamp: new Date().toISOString(),
       level,
@@ -20,7 +20,7 @@ export const logger = {
     }
   },
   
-  info: (event: string, payload?: Record<string, any>) => logger.log("info", event, payload),
-  warn: (event: string, payload?: Record<string, any>) => logger.log("warn", event, payload),
-  error: (event: string, payload?: Record<string, any>) => logger.log("error", event, payload),
+  info: (event: string, payload?: Record<string, unknown>) => logger.log("info", event, payload),
+  warn: (event: string, payload?: Record<string, unknown>) => logger.log("warn", event, payload),
+  error: (event: string, payload?: Record<string, unknown>) => logger.log("error", event, payload),
 };

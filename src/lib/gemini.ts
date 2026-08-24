@@ -5,7 +5,7 @@ import { logger } from "./logger";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "placeholder");
 
 export async function generatePreVisitSummary(rawSymptoms: string): Promise<{
-  aiSummary: any;
+  aiSummary: unknown;
   aiUrgency: "LOW" | "MEDIUM" | "HIGH";
   aiStatus: "SUCCESS" | "FAILED";
 }> {
@@ -49,17 +49,18 @@ Patient symptoms:
         aiUrgency: ["LOW", "MEDIUM", "HIGH"].includes(parsed.urgency) ? parsed.urgency : "MEDIUM",
         aiStatus: "SUCCESS",
       };
-    } catch (parseError) {
+    } catch (_parseError) {
       logger.error("Gemini JSON parse failed", { text: cleanText });
       return { aiSummary: null, aiUrgency: "MEDIUM", aiStatus: "FAILED" };
     }
-  } catch (error: any) {
-    logger.error("Gemini API call failed", { error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error("Gemini API call failed", { error: errorMessage });
     return { aiSummary: null, aiUrgency: "MEDIUM", aiStatus: "FAILED" };
   }
 }
 
-export async function generatePostVisitSummary(doctorNotes: string, prescription: any): Promise<{
+export async function generatePostVisitSummary(doctorNotes: string, prescription: unknown): Promise<{
   aiPatientSummary: string;
   aiStatus: "SUCCESS" | "FAILED";
 }> {
@@ -90,8 +91,9 @@ ${JSON.stringify(prescription)}
       aiPatientSummary: result.response.text().trim(),
       aiStatus: "SUCCESS",
     };
-  } catch (error: any) {
-    logger.error("Gemini post-visit API call failed", { error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error("Gemini post-visit API call failed", { error: errorMessage });
     return { aiPatientSummary: "", aiStatus: "FAILED" };
   }
 }
