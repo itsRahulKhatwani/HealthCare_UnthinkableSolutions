@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -42,7 +42,7 @@ export async function POST() {
     return successResponse({ appointment }, 200);
   } catch (error: unknown) {
     // Prisma unique constraint violation code
-    if (error.code === "P2002") {
+    if (typeof error === "object" && error !== null && "code" in error && (error as { code: string }).code === "P2002") {
       logger.warn("Concurrency guard triggered: Slot just taken", { error: (error instanceof Error ? error.message : String(error)) });
       return errorResponse("This slot was just taken by someone else.", "SLOT_TAKEN", 409);
     }

@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { errorResponse, successResponse } from "@/lib/api-response";
 
 // TEST ONLY ENDPOINT
-export async function POST() {
+export async function POST(req: Request) {
   if (process.env.NODE_ENV === "production") {
     return errorResponse("Not found", "NOT_FOUND", 404);
   }
@@ -28,7 +28,7 @@ export async function POST() {
 
     return successResponse({ appointment }, 200);
   } catch (error: unknown) {
-    if (error.code === "P2002") {
+    if (typeof error === "object" && error !== null && "code" in error && (error as { code: string }).code === "P2002") {
       return errorResponse("This slot was just taken by someone else.", "SLOT_TAKEN", 409);
     }
     return errorResponse("Internal server error", "INTERNAL_ERROR", 500);

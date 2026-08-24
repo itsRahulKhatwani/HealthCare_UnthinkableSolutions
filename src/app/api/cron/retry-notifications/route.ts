@@ -23,9 +23,9 @@ export async function GET() {
           const payload = notification.payload as Record<string, unknown>;
           if (payload?.recipient) {
             await sendEmail({
-              to: payload.recipient,
-              subject: payload.subject || "Healthcare Appointment Update",
-              html: payload.message || "You have a new update regarding your appointment.",
+              to: payload.recipient as string,
+              subject: (payload.subject as string) || "Healthcare Appointment Update",
+              html: (payload.message as string) || "You have a new update regarding your appointment.",
             });
           }
         } else if (notification.channel === "CALENDAR") {
