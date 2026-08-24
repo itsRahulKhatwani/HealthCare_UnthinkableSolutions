@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, UserRound } from "lucide-react";
 
 export default async function BookDoctorPage({ params }: { params: { doctorId: string } }) {
-  const doctor = await prisma.user.findUnique({
+  const doctor = await prisma.user.findFirst({
     where: { id: params.doctorId, role: "DOCTOR" },
     include: { doctorProfile: true },
   });
