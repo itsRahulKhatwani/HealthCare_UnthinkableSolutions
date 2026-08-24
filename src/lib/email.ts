@@ -1,7 +1,15 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { logger } from "./logger";
 
-const resend = new Resend(process.env.RESEND_API_KEY || "placeholder");
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port: parseInt(process.env.SMTP_PORT || "587"),
+  secure: process.env.SMTP_PORT === "465",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASSWORD,
+  },
+});
 
 export async function sendEmail({
   to,
@@ -13,15 +21,15 @@ export async function sendEmail({
   html: string;
 }) {
   try {
-    const data = await resend.emails.send({
-      from: "Healthcare App <onboarding@resend.dev>",
+    const info = await transporter.sendMail({
+      from: `Healthcare App <${process.env.EMAIL_FROM}>`,
       to,
       subject,
       html,
     });
-    return { success: true, data };
+    return { success: true, data: info };
   } catch (error: any) {
-    logger.error("Failed to send email via Resend", { error: error.message, to, subject });
+    logger.error("Failed to send email via Nodemailer", { error: error.message, to, subject });
     throw error;
   }
 }
