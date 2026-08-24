@@ -11,15 +11,27 @@
  * For this test, we assume a test-only endpoint `/api/test/concurrency-hold` is available in development.
  */
 
+import { PrismaClient } from "../src/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
+
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
 async function runConcurrencyTest() {
   const API_URL = "http://localhost:3000/api/test/concurrency-hold";
   
+  const doctor = await prisma.user.findFirst({ where: { role: "DOCTOR" } });
+  const patient = await prisma.user.findFirst({ where: { role: "PATIENT" } });
+
   // Example payload
   const payload = {
-    doctorId: "doctor-123", // Replaced by real UUID in endpoint
-    patientId: "patient-123", // Replaced by real UUID in endpoint
-    slotStart: new Date(new Date().setHours(10, 0, 0, 0)).toISOString(),
-    slotEnd: new Date(new Date().setHours(10, 30, 0, 0)).toISOString(),
+    doctorId: doctor!.id,
+    patientId: patient!.id,
+    slotStart: new Date(new Date().setHours(11, 0, 0, 0)).toISOString(),
+    slotEnd: new Date(new Date().setHours(11, 30, 0, 0)).toISOString(),
   };
 
   console.log(`Firing 2 simultaneous hold requests for slot ${payload.slotStart}...`);

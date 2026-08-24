@@ -14,6 +14,7 @@
   "dependencies": {
     "@base-ui/react": "^1.7.0",
     "@google/generative-ai": "^0.24.1",
+    "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
@@ -24,6 +25,7 @@
     "next": "14.2.35",
     "next-auth": "^4.24.15",
     "nodemailer": "^7.0.13",
+    "pg": "^8.23.0",
     "react": "^18",
     "react-dom": "^18",
     "resend": "^6.22.0",

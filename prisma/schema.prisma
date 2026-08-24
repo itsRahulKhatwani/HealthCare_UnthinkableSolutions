@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +5,146 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum AppointmentStatus {
+  HELD
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  LEAVE_CONFLICT
+}
+
+enum AiStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum AiUrgency {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum NotificationType {
+  BOOKING_CONFIRM
+  REMINDER
+  CANCELLATION
+  LEAVE_CONFLICT
+  MEDICATION_REMINDER
+}
+
+enum NotificationChannel {
+  EMAIL
+  CALENDAR
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  name         String
+  createdAt    DateTime @default(now())
+
+  doctorProfile DoctorProfile?
+  doctorLeaves  DoctorLeave[]
+
+  patientAppointments Appointment[] @relation("PatientAppointments")
+  doctorAppointments  Appointment[] @relation("DoctorAppointments")
+}
+
+model DoctorProfile {
+  id                  String @id @default(uuid())
+  userId              String @unique
+  user                User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialisation      String
+  workingHoursStart   String
+  workingHoursEnd     String
+  slotDurationMinutes Int
+}
+
+model DoctorLeave {
+  id       String   @id @default(uuid())
+  doctorId String
+  doctor   User     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  date     DateTime @db.Date
+  reason   String
+}
+
+model Appointment {
+  id        String            @id @default(uuid())
+  doctorId  String
+  patientId String
+  slotStart DateTime
+  slotEnd   DateTime
+  status    AppointmentStatus
+  heldUntil DateTime?
+  createdAt DateTime          @default(now())
+
+  doctor  User @relation("DoctorAppointments", fields: [doctorId], references: [id], onDelete: Cascade)
+  patient User @relation("PatientAppointments", fields: [patientId], references: [id], onDelete: Cascade)
+
+  symptomForm   SymptomForm?
+  visitNote     VisitNote?
+  notifications Notification[]
+  calendarEvent CalendarEvent?
+
+  @@unique([doctorId, slotStart])
+}
+
+model SymptomForm {
+  id            String      @id @default(uuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  rawSymptoms   String
+  aiSummary     Json?
+  aiUrgency     AiUrgency?
+  aiStatus      AiStatus    @default(PENDING)
+  createdAt     DateTime    @default(now())
+}
+
+model VisitNote {
+  id               String      @id @default(uuid())
+  appointmentId    String      @unique
+  appointment      Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  doctorNotes      String
+  prescription     Json?
+  aiPatientSummary String?
+  aiStatus         AiStatus    @default(PENDING)
+}
+
+model Notification {
+  id            String              @id @default(uuid())
+  appointmentId String
+  appointment   Appointment         @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  type          NotificationType
+  channel       NotificationChannel
+  status        NotificationStatus  @default(PENDING)
+  retryCount    Int                 @default(0)
+  lastAttemptAt DateTime?
+  payload       Json?
+}
+
+model CalendarEvent {
+  id             String      @id @default(uuid())
+  appointmentId  String      @unique
+  appointment    Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  googleEventId  String?
+  patientEventId String?
+  doctorEventId  String?
+  status         String
 }
