@@ -15,6 +15,27 @@ We handle this by leveraging the database's atomic guarantees rather than relyin
 
 **Tradeoffs:** While this approach forces a database write even for holds that might be abandoned, it provides mathematical certainty against double-booking without requiring distributed locks (like Redis), keeping the architecture simple and reliant on our primary data store (PostgreSQL).
 
+```mermaid
+sequenceDiagram
+    participant P1 as Patient A
+    participant P2 as Patient B
+    participant API as Booking API
+    participant DB as PostgreSQL
+
+    P1->>API: Selects 10:00 AM Slot
+    P2->>API: Selects 10:00 AM Slot (Simultaneous)
+    
+    API->>DB: INSERT Appointment (status="HELD")
+    API->>DB: INSERT Appointment (status="HELD")
+    
+    Note over DB: Unique Constraint (doctorId, slotStart)
+    DB-->>API: Success (Row Created)
+    DB-->>API: Error P2002 (Constraint Violation)
+    
+    API-->>P1: 200 OK (Slot Held, 7 min countdown starts)
+    API-->>P2: 409 Conflict (Slot just taken)
+```
+
 ## 2. Slot Hold Lifecycle & Cleanup
 
 **Problem:** If a user holds a slot but abandons the symptom form, that slot would remain unavailable to others forever unless cleaned up.
@@ -45,3 +66,19 @@ We handle this by leveraging the database's atomic guarantees rather than relyin
 - **Retry Mechanism:** A cron job (`/api/cron/retry-notifications`) sweeps `PENDING` and `FAILED` notifications. If an external API call fails, it increments `retryCount`. It attempts to send up to 5 times. This guarantees delivery even if the Resend or Google APIs have transient downtime.
 
 By treating external integrations as asynchronous, background processes, the core application remains highly available and resilient.
+
+```mermaid
+flowchart TD
+    A[Booking / Leave API] -->|Writes to DB| B[(Notification Table)]
+    B -->|status: PENDING| C{Cron Job}
+    
+    C -->|Reads PENDING/FAILED| D[Process Notification]
+    D --> E{Integration (Email/Calendar)}
+    
+    E -- Success --> F[Update status = SENT]
+    E -- Failure --> G[Update status = FAILED]
+    G --> H[Increment retryCount]
+    
+    H -->|retryCount < 5| B
+    H -->|retryCount >= 5| I[Dead Letter / Permanent Failure]
+```

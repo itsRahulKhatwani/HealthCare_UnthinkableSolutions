@@ -109,6 +109,54 @@ Response 2: 409 { error: { code: 'SLOT_TAKEN', message: 'This slot was just take
 
 ## Database Schema (Prisma)
 
+```mermaid
+erDiagram
+    User ||--o{ Appointment : "Patient/Doctor"
+    User ||--o| DoctorProfile : "has"
+    User ||--o{ DoctorLeave : "takes"
+    
+    Appointment ||--o| SymptomForm : "has"
+    Appointment ||--o| VisitNote : "has"
+    Appointment ||--o| CalendarEvent : "has"
+    Appointment ||--o{ Notification : "triggers"
+
+    User {
+        String id PK
+        String email UK
+        Role role
+        String name
+    }
+    
+    Appointment {
+        String id PK
+        String doctorId FK
+        String patientId FK
+        DateTime slotStart
+        AppointmentStatus status
+    }
+    
+    DoctorProfile {
+        String id PK
+        String userId FK
+        String specialisation
+    }
+    
+    SymptomForm {
+        String id PK
+        String appointmentId FK
+        Json aiSummary
+        AiStatus aiStatus
+    }
+    
+    Notification {
+        String id PK
+        String appointmentId FK
+        NotificationType type
+        NotificationStatus status
+        Int retryCount
+    }
+```
+
 - **User**: Represents Doctors, Patients, and Admins.
 - **DoctorProfile**: Holds doctor-specific data (specialization, working hours).
 - **Appointment**: Core entity linking a Doctor and Patient. Includes a `@@unique([doctorId, slotStart])` constraint to prevent double-booking at the database level. Tracks `status` (HELD, CONFIRMED, CANCELLED) and `heldUntil` for the booking flow countdown.
