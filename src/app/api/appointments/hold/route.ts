@@ -1,11 +1,10 @@
-import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
     const session = await getServerSession(authOptions);
 
@@ -41,14 +40,14 @@ export async function POST(req: Request) {
     logger.info("Slot hold created", { appointmentId: appointment.id, doctorId, patientId, slotStart });
 
     return successResponse({ appointment }, 200);
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Prisma unique constraint violation code
     if (error.code === "P2002") {
-      logger.warn("Concurrency guard triggered: Slot just taken", { error: error.message });
+      logger.warn("Concurrency guard triggered: Slot just taken", { error: (error instanceof Error ? error.message : String(error)) });
       return errorResponse("This slot was just taken by someone else.", "SLOT_TAKEN", 409);
     }
 
-    logger.error("Error creating slot hold", { error: error.message });
+    logger.error("Error creating slot hold", { error: (error instanceof Error ? error.message : String(error)) });
     return errorResponse("Internal server error", "INTERNAL_ERROR", 500);
   }
 }

@@ -12,7 +12,7 @@ export default async function DoctorDashboard() {
     redirect("/api/auth/signin");
   }
 
-  const appointments = await prisma.appointment.findMany({
+  const appointments = await prisma.appointment.findMunknown({
     where: { doctorId: session.user.id },
     include: { patient: true, symptomForm: true, visitNote: true },
     orderBy: { slotStart: "asc" },
@@ -65,8 +65,8 @@ export default async function DoctorDashboard() {
                       {appt.symptomForm ? (
                         <div className="text-sm">
                           <p className="font-medium text-gray-900">Urgency: {appt.symptomForm.aiUrgency || "Unknown"}</p>
-                          <p className="text-gray-500 truncate max-w-xs" title={(appt.symptomForm.aiSummary as any)?.chiefComplaint}>
-                            {(appt.symptomForm.aiSummary as any)?.chiefComplaint || "No AI summary available"}
+                          <p className="text-gray-500 truncate max-w-xs" title={(appt.symptomForm.aiSummary as unknown)?.chiefComplaint}>
+                            {(appt.symptomForm.aiSummary as unknown)?.chiefComplaint || "No AI summary available"}
                           </p>
                         </div>
                       ) : (

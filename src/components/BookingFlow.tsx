@@ -65,8 +65,8 @@ export function BookingFlow({ doctorId, availableSlots }: { doctorId: string, av
       setSelectedSlot(slotStart);
       setHeldAppointmentId(data.appointment.id);
       setHeldUntil(new Date(data.appointment.heldUntil));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -93,8 +93,8 @@ export function BookingFlow({ doctorId, availableSlots }: { doctorId: string, av
       
       setSuccess(true);
       setHeldUntil(null);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -116,7 +116,7 @@ export function BookingFlow({ doctorId, availableSlots }: { doctorId: string, av
           <CheckCircle className="w-20 h-20 text-green-400 mb-6 drop-shadow-[0_0_15px_rgba(74,222,128,0.5)]" />
         </motion.div>
         <h2 className="text-3xl font-extrabold text-white mb-3">Booking Confirmed!</h2>
-        <p className="text-gray-400 mb-8 max-w-sm">Your appointment has been successfully scheduled. We've sent a confirmation email.</p>
+        <p className="text-gray-400 mb-8 max-w-sm">Your appointment has been successfully scheduled. We&apos;ve sent a confirmation email.</p>
         <button 
           onClick={() => router.push("/")} 
           className="px-8 py-3 bg-white text-black font-semibold rounded-full hover:scale-105 transition shadow-[0_0_20px_rgba(255,255,255,0.3)]"

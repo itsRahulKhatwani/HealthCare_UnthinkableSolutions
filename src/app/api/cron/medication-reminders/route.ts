@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     // A simplified example:
     // In reality, this would query a structured medication table and check times.
@@ -56,8 +56,8 @@ export async function GET(req: Request) {
     logger.info("Cron: Medication reminders processed", { queued: remindersQueued });
 
     return NextResponse.json({ success: true, queued: remindersQueued });
-  } catch (error: any) {
-    logger.error("Cron failed: medication-reminders", { error: error.message });
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    logger.error("Cron failed: medication-reminders", { error: (error instanceof Error ? error.message : String(error)) });
+    return NextResponse.json({ success: false, error: (error instanceof Error ? error.message : String(error)) }, { status: 500 });
   }
 }

@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { errorResponse, successResponse } from "@/lib/api-response";
-import { addMinutes, setHours, setMinutes, isSameDay } from "date-fns";
+import { addMinutes, setHours, setMinutes } from "date-fns";
 
 export async function GET(
   req: Request,
@@ -86,7 +85,7 @@ export async function GET(
     }
 
     return successResponse({ availableSlots });
-  } catch (error: any) {
+  } catch {
     return errorResponse("Internal server error", "INTERNAL_ERROR", 500);
   }
 }

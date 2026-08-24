@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -90,8 +89,8 @@ export async function POST(
     logger.info("Appointment confirmed via symptom form", { appointmentId: appointment.id });
 
     return successResponse({ appointment: updatedAppt, symptomForm }, 200);
-  } catch (error: any) {
-    logger.error("Error confirming appointment", { error: error.message });
+  } catch (error: unknown) {
+    logger.error("Error confirming appointment", { error: (error instanceof Error ? error.message : String(error)) });
     return errorResponse("Internal server error", "INTERNAL_ERROR", 500);
   }
 }

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { sendEmail } from "@/lib/email";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     // Find all PENDING or FAILED notifications with retryCount < 5
     const pendingNotifications = await prisma.notification.findMany({
@@ -20,7 +20,7 @@ export async function GET(req: Request) {
     for (const notification of pendingNotifications) {
       try {
         if (notification.channel === "EMAIL") {
-          const payload = notification.payload as any;
+          const payload = notification.payload as Record<string, unknown>;
           if (payload?.recipient) {
             await sendEmail({
               to: payload.recipient,
@@ -43,7 +43,7 @@ export async function GET(req: Request) {
           },
         });
         sentCount++;
-      } catch (error: any) {
+      } catch {
         // Increment retry count and mark as FAILED
         await prisma.notification.update({
           where: { id: notification.id },
@@ -64,8 +64,8 @@ export async function GET(req: Request) {
     logger.info("Cron: Notifications processed", { sent: sentCount, failed: failedCount });
 
     return NextResponse.json({ success: true, sent: sentCount, failed: failedCount });
-  } catch (error: any) {
-    logger.error("Cron failed: retry-notifications", { error: error.message });
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    logger.error("Cron failed: retry-notifications", { error: (error instanceof Error ? error.message : String(error)) });
+    return NextResponse.json({ success: false, error: (error instanceof Error ? error.message : String(error)) }, { status: 500 });
   }
 }

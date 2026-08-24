@@ -1,11 +1,10 @@
-import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== "ADMIN") {
@@ -89,8 +88,8 @@ export async function POST(req: Request) {
       leave,
       conflictsResolved: conflicts.length,
     });
-  } catch (error: any) {
-    logger.error("Error creating doctor leave", { error: error.message });
+  } catch (error: unknown) {
+    logger.error("Error creating doctor leave", { error: (error instanceof Error ? error.message : String(error)) });
     return errorResponse("Internal server error", "INTERNAL_ERROR", 500);
   }
 }

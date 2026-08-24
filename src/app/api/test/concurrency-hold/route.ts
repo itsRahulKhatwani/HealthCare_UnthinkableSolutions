@@ -1,9 +1,8 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { errorResponse, successResponse } from "@/lib/api-response";
 
 // TEST ONLY ENDPOINT
-export async function POST(req: Request) {
+export async function POST() {
   if (process.env.NODE_ENV === "production") {
     return errorResponse("Not found", "NOT_FOUND", 404);
   }
@@ -28,7 +27,7 @@ export async function POST(req: Request) {
     });
 
     return successResponse({ appointment }, 200);
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error.code === "P2002") {
       return errorResponse("This slot was just taken by someone else.", "SLOT_TAKEN", 409);
     }

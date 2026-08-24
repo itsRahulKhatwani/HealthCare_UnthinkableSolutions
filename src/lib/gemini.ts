@@ -54,7 +54,7 @@ Patient symptoms:
       return { aiSummary: null, aiUrgency: "MEDIUM", aiStatus: "FAILED" };
     }
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error);
     logger.error("Gemini API call failed", { error: errorMessage });
     return { aiSummary: null, aiUrgency: "MEDIUM", aiStatus: "FAILED" };
   }
@@ -92,7 +92,7 @@ ${JSON.stringify(prescription)}
       aiStatus: "SUCCESS",
     };
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error);
     logger.error("Gemini post-visit API call failed", { error: errorMessage });
     return { aiPatientSummary: "", aiStatus: "FAILED" };
   }

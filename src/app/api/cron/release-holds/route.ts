@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
-export async function GET(req: Request) {
+export async function GET() {
   // In a real Vercel Cron, you would verify the authorization header:
   // if (req.headers.get("Authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
   //   return new NextResponse("Unauthorized", { status: 401 });
@@ -23,8 +23,8 @@ export async function GET(req: Request) {
     logger.info("Cron: Released expired holds", { count: released.count });
 
     return NextResponse.json({ success: true, count: released.count });
-  } catch (error: any) {
-    logger.error("Cron failed: release-holds", { error: error.message });
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    logger.error("Cron failed: release-holds", { error: (error instanceof Error ? error.message : String(error)) });
+    return NextResponse.json({ success: false, error: (error instanceof Error ? error.message : String(error)) }, { status: 500 });
   }
 }
