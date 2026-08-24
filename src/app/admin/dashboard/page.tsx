@@ -12,12 +12,12 @@ export default async function AdminDashboard() {
     redirect("/api/auth/signin");
   }
 
-  const doctors = await prisma.user.findMunknown({
+  const doctors = await prisma.user.findMany({
     where: { role: "DOCTOR" },
     include: { doctorProfile: true },
   });
 
-  const leaves = await prisma.doctorLeave.findMunknown({
+  const leaves = await prisma.doctorLeave.findMany({
     include: { doctor: true },
     orderBy: { date: "desc" },
     take: 10,
