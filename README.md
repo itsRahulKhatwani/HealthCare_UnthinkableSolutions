@@ -14,6 +14,11 @@ Please read the [`SYSTEM_DESIGN.md`](./SYSTEM_DESIGN.md) for an in-depth look at
 
 ---
 
+## Hosted Application URL
+**Live Deployment:** [https://health-care-unthinkable-solutions.vercel.app/](https://health-care-unthinkable-solutions.vercel.app/)
+
+---
+
 ## Setup & Local Development
 
 ### 1. Prerequisites
@@ -99,3 +104,69 @@ Response 2: 409 { error: { code: 'SLOT_TAKEN', message: 'This slot was just take
 - **`/api/cron/release-holds`**: Sweeps expired slot holds.
 - **`/api/cron/medication-reminders`**: Processes and queues daily medication reminders.
 - **`/api/cron/retry-notifications`**: Retries FAILED notifications (Email/Calendar) with backoff.
+
+---
+
+## Database Schema (Prisma)
+
+- **User**: Represents Doctors, Patients, and Admins.
+- **DoctorProfile**: Holds doctor-specific data (specialization, working hours).
+- **Appointment**: Core entity linking a Doctor and Patient. Includes a `@@unique([doctorId, slotStart])` constraint to prevent double-booking at the database level. Tracks `status` (HELD, CONFIRMED, CANCELLED) and `heldUntil` for the booking flow countdown.
+- **SymptomForm / VisitNote**: 1-to-1 relations with Appointment storing raw input and Gemini AI summaries.
+- **Notification**: Outbox pattern for asynchronous email and calendar notifications.
+- **CalendarEvent**: Tracks the IDs of events created on Google Calendar.
+
+---
+
+## LLM Prompts (Google Gemini)
+
+### 1. Pre-Visit Summary (Symptom Analysis)
+Used when a patient submits their symptoms during the booking flow.
+```text
+You are a medical AI assistant. Analyze the following patient symptoms and generate a pre-visit summary.
+Output exactly valid JSON without any markdown formatting. Do not wrap in \`\`\`json.
+The JSON must have this schema:
+{
+  "chiefComplaint": "A short summary of the main issue",
+  "questions": ["Question 1", "Question 2", "Question 3"],
+  "urgency": "LOW" | "MEDIUM" | "HIGH"
+}
+
+Patient symptoms:
+"{rawSymptoms}"
+```
+
+### 2. Post-Visit Summary (Patient Instructions)
+Used when a doctor concludes a visit and submits their clinical notes.
+```text
+You are a medical AI assistant. Create a patient-friendly summary of their visit based on the doctor's notes and prescription.
+Keep it simple, reassuring, and clearly explain the medication schedule.
+
+Doctor's Notes:
+{doctorNotes}
+
+Prescription:
+{prescription}
+```
+
+---
+
+## Google Calendar Setup Steps
+
+To enable the automated calendar invites for appointments, follow these steps:
+
+1. **Create a Google Cloud Project**: Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. **Enable the Calendar API**: Search for "Google Calendar API" and click Enable.
+3. **Configure OAuth Consent Screen**: Setup an external consent screen. You only need the `.../auth/calendar.events` scope.
+4. **Create OAuth Credentials**: 
+   - Go to Credentials > Create Credentials > OAuth client ID.
+   - Set Application Type to "Web application".
+   - Add Authorized redirect URIs (e.g., `https://developers.google.com/oauthplayground` for testing).
+   - Copy the generated **Client ID** and **Client Secret**.
+5. **Get a Refresh Token**:
+   - Go to the [OAuth 2.0 Playground](https://developers.google.com/oauthplayground/).
+   - Input your Client ID and Secret in the OAuth Playground settings (gear icon).
+   - Select the `https://www.googleapis.com/auth/calendar.events` scope and Authorize APIs.
+   - Exchange the authorization code for tokens.
+   - Copy the **Refresh Token**.
+6. **Set Environment Variables**: Add the Client ID, Secret, and Refresh Token to your `.env.local` file (and Vercel environment variables).
