@@ -1,4 +1,4 @@
-# Healthcare Appointment & Follow-up Manager
+# Healthcare Appointment & Follow-up Manager//
 
 A production-grade healthcare appointment platform built with Next.js 14, Prisma, PostgreSQL (Supabase), and Google Gemini API.
 
